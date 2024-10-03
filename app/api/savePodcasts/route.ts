@@ -2,7 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { User } from "../../lib/mongodb";
-// import mongoose from "mongoose"; // Removed unused import
+import mongoose from "mongoose"; // Removed unused import
+
+// Ensure the database connection is established
+if (mongoose.connection.readyState === 0) {
+  mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }).then(() => {
+    console.log("Connected to MongoDB");
+  }).catch(err => {
+    console.error("Failed to connect to MongoDB", err);
+  });
+}
 
 function validateUUID(id: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -48,7 +60,11 @@ export async function POST(request: NextRequest) {
     }
 
     user.subscribedPodcasts = [...new Set([...user.subscribedPodcasts, ...podcastObjectIds])];
-    await user.save();
+    console.log("user.subscribedPodcasts", user.subscribedPodcasts);
+    await User.updateOne({ email: user.email }, { $set: { subscribedPodcasts: user.subscribedPodcasts } }).catch(err => {
+      console.error("Error updating user:", err);
+      throw new Error("Failed to update user");
+    });
 
     return NextResponse.json({ message: "Podcasts saved successfully" });
   } catch (error) {
