@@ -45,7 +45,34 @@ export default function SelectPodcastsPage() {
           <h2>{podcast.name}</h2>
           <p>RSS URL: {podcast.rssUrl}</p>
           <p>iTunes ID: {podcast.itunesId}</p>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-md">Subscribe</button>
+          <button 
+            className="bg-blue-500 text-white px-4 py-2 rounded-md"
+            onClick={async () => {
+              try {
+                const response = await fetch("/api/savePodcasts", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ podcastIds: [podcast.uuid] }),
+                });
+
+                if (!response.ok) {
+                  throw new Error("Failed to subscribe to podcast");
+                }
+
+                alert("Subscribed successfully!");
+              } catch (error: unknown) {
+                if (error instanceof Error) {
+                  setError(error.message);
+                } else {
+                  setError('An unknown error occurred');
+                }
+              }
+            }}
+          >
+            Subscribe
+          </button>
           <button>Unsubscribe</button>
         </div>
       ))}

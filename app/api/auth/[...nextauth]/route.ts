@@ -2,9 +2,8 @@
 import NextAuth, { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
-import clientPromise from "../../../lib/mongodb";
-import { compare } from "bcrypt"; // Changed from "bcrypt" to "bcryptjs"
-import { MongoClient } from "mongodb";
+import { clientPromise } from "../../../lib/mongodb";
+import { compare } from "bcrypt";
 
 interface User {
   id: string;
@@ -14,7 +13,7 @@ interface User {
 }
 
 export const authOptions: AuthOptions = {
-  adapter: MongoDBAdapter(clientPromise as Promise<MongoClient>),
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -37,6 +36,7 @@ export const authOptions: AuthOptions = {
           throw new Error("Invalid password.");
         }
 
+        // Ensure the returned object is a plain object
         return {
           id: user.id,
           name: user.name,

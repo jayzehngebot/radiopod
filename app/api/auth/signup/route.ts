@@ -1,46 +1,31 @@
-// app/api/auth/signup/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "../../../lib/mongodb";
-import { hash } from "bcryptjs";
+import { NextApiRequest, NextApiResponse } from 'next';
+import { User } from '../../../lib/mongodb';
+import bcrypt from 'bcrypt';
 
-interface User {
-  name: string;
-  password: string;
-  email: string;
-}
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'POST') {
+    const { name, email, password } = req.body;
 
-export async function POST(request: NextRequest) {
-//   console.log("signup route", request.json());
-  const { name, password, email } = await request.json();
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  console.log("signup route", name, password, email);
-  
-  if (!name || !password) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-  }
+    try {
+      // Create a new user
+      const newUser = new User({
+        name,
+        email,
+        password: hashedPassword,
+        subscribedPodcasts: []
+      });
 
-  try {
-    const client = await clientPromise;
-    const usersCollection = client.db().collection<User>("users");
+      await newUser.save();
 
-    const existingUser = await usersCollection.findOne({ email });
-    if (existingUser) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 });
+      res.status(201).json({ message: 'User created successfully' });
+    } catch (error) {
+      console.log("error", error);
+      res.status(500).json({ error: 'Error creating user' });
     }
-
-    const hashedPassword = await hash(password, 12);
-
-    const newUser: User = {
-      name,
-      email,
-      password: hashedPassword,
-    };
-
-    await usersCollection.insertOne(newUser);
-
-    return NextResponse.json({ message: "User created" }, { status: 201 });
-  } catch (error) {
-    console.error("Signup route error:", error); // Added error logging
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  } else {
+    res.status(405).json({ error: 'Method not allowed' });
   }
 }
