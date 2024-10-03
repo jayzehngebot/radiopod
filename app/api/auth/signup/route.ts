@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 //   console.log("signup route", request.json());
   const { name, password, email } = await request.json();
 
-  console.log("signup route", name, password);
+  console.log("signup route", name, password, email);
   
   if (!name || !password) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
