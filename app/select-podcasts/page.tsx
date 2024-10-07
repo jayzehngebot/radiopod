@@ -54,7 +54,7 @@ export default function SelectPodcastsPage() {
                   headers: {
                     "Content-Type": "application/json",
                   },
-                  body: JSON.stringify({ podcastIds: [podcast.uuid] }),
+                  body: JSON.stringify({ podcast }), // Send entire podcast object
                 });
 
                 if (!response.ok) {

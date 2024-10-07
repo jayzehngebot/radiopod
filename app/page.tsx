@@ -43,7 +43,11 @@ export default function HomePage() {
       <ul>
         {userData?.user?.subscribedPodcasts && userData.user.subscribedPodcasts.length > 0 ? (
           userData.user.subscribedPodcasts.map((podcast) => (
-            <li key={Math.random().toString(36).substr(2, 9)}>{podcast}</li>
+            <div key={podcast.id}>
+              <span>{podcast.name}</span><br/>
+              <span>{podcast.rssUrl}</span>
+            </div>
+
           ))
         ) : (
           <li>No subscribed podcasts found</li>

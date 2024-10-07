@@ -39,18 +39,21 @@ mongoose.connect(uri, {}).then(() => {
   console.error("Error connecting to MongoDB with Mongoose", err);
 });
 
+// Define Podcast schema
+const podcastSchema = new mongoose.Schema({
+  uuid: { type: String, required: true },
+  name: { type: String, required: true },
+  rssUrl: { type: String, required: true },
+  itunesId: { type: String, required: true },
+  // Add any other fields as necessary
+});
+
 // Define User schema
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  subscribedPodcasts: [{
-    type: String,
-    validate: { 
-      validator: (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v), 
-      message: (props: { value: string }) => `${props.value} is not a valid UUID!` 
-    }
-  }]
+  subscribedPodcasts: { type: [podcastSchema], default: [] } // Define as an array of podcast objects
 });
 
 // Check if the model already exists before defining it
