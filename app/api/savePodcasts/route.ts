@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/auth";
 import { User } from "../../lib/mongodb";
 // import { Podcast } from "../../lib/mongodb";
 import mongoose from "mongoose"; // Removed unused import
