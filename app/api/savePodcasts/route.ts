@@ -13,6 +13,12 @@ mongoose.connect(mongoUri).then(() => {
   console.error("Failed to connect to MongoDB", err);
 });
 
+// Define an interface for the podcast
+interface Podcast {
+  uuid: string;
+  // Add other properties if needed
+}
+
 // function validateUUID(id: string): boolean {
 //   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 //   return uuidRegex.test(id);
@@ -41,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if the podcast already exists in the user's subscribedPodcasts
-    const podcastExists = user.subscribedPodcasts.some((p: any) => p.uuid === podcast.uuid);
+    const podcastExists = user.subscribedPodcasts.some((p: Podcast) => p.uuid === podcast.uuid);
     if (podcastExists) {
       return NextResponse.json({ error: "Podcast already subscribed" }, { status: 409 });
     }

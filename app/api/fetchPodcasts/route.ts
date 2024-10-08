@@ -1,5 +1,3 @@
-// app/api/fetchPodcasts/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { GraphQLClient, gql } from "graphql-request";
 import { createClient } from 'redis';
@@ -11,7 +9,11 @@ const redisClient = createClient({
 
 redisClient.on('error', (err) => console.error('Redis Client Error', err));
 
-await redisClient.connect();
+async function initializeRedisClient() {
+    await redisClient.connect();
+}
+
+initializeRedisClient();
 
 const SEARCH_FOR_TERM_QUERY = gql`
   query searchForTerm($term: String, $page: Int, $limitPerPage: Int, $filterForTypes: [TaddyType], $filterForCountries: [Country], $filterForLanguages: [Language], $filterForGenres: [Genre], $filterForSeriesUuids: [ID], $filterForNotInSeriesUuids: [ID], $isExactPhraseSearchMode: Boolean, $isSafeMode: Boolean, $searchResultsBoostType: SearchResultBoostType) {
@@ -33,14 +35,22 @@ const SEARCH_FOR_TERM_QUERY = gql`
   }
 `;
 
-async function taddyGraphqlRequest({ query, variables }) {
+// Define a type for the variables if you know their structure
+type VariablesType = {
+  term: string;
+  page: number; // Add this line to include 'page'
+  limitPerPage: number;
+};
+
+async function taddyGraphqlRequest({ query, variables }: { query: string; variables: VariablesType }) {
   const endpointUrl = "https://api.taddy.org/";
     
-  const headers = {
+  console.log('userid : ', process.env.TADDY_USER_ID);
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'User-Agent': 'Example App',
-    'X-USER-ID': process.env.TADDY_USER_ID,
-    'X-API-KEY': process.env.TADDY_API_KEY,
+    'X-USER-ID': process.env.TADDY_USER_ID || '',
+    'X-API-KEY': process.env.TADDY_API_KEY || '', 
   }
   
   try {
@@ -59,7 +69,12 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const limitPerPage = parseInt(searchParams.get("limitPerPage") || "25");
 
-  const variables = { term, page, limitPerPage };
+  const variables: VariablesType = {
+    term: 'podcast',
+    page: 1,
+    limitPerPage: 10,
+  };
+
   const cacheKey = `podcasts:${term}:${page}:${limitPerPage}`;
 
   try {

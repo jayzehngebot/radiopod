@@ -4,6 +4,8 @@
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
 
 // Define the User type with nested user object
 type User = {
@@ -11,7 +13,12 @@ type User = {
     name?: string | null;
     email?: string | null;
     image?: string | null;
-    subscribedPodcasts?: { id: string; name: string }[];
+    subscribedPodcasts?: { 
+      id: string; 
+      name: string; 
+      rssUrl: string; 
+      itunesId: string; 
+    }[];
   };
 };
 
@@ -40,8 +47,19 @@ export default function HomePage() {
     <div>
       <h1>Welcome, {userData?.user?.name || userData?.user?.email}</h1>
       <Link href="/select-podcasts">Select Podcasts</Link>
+
+      {userData?.user?.subscribedPodcasts && userData.user.subscribedPodcasts.length > 0 && (
+        <>
+          <div>Render Player Here</div>
+          <AudioPlayer
+            autoPlay
+            src="https://chtbl.com/track/7791D/http://feeds.soundcloud.com/stream/1916284451-qanonanonymous-racist-migrant-voodoo-panic-e294.mp3"
+          />
+        </>
+      )}
       <ul>
         {userData?.user?.subscribedPodcasts && userData.user.subscribedPodcasts.length > 0 ? (
+          
           userData.user.subscribedPodcasts.map((podcast) => (
             <div key={podcast.id}>
               <span>{podcast.name}</span><br/>

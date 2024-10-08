@@ -32,6 +32,8 @@ export const authOptions: AuthOptions = {
           throw new Error("No user found with the provided name.");
         }
 
+        // TODO : Not checking for email match
+
         const isValid = await compare(credentials!.password, user.password);
         if (!isValid) {
           throw new Error("Invalid password.");
