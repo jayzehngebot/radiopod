@@ -12,28 +12,30 @@ interface Podcast {
 export default function SelectPodcastsPage() {
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>(""); // New state for search term
 
   useEffect(() => {
-    const fetchPodcasts = async () => {
-      try {
-        const response = await fetch("/api/fetchPodcasts?term=podcast"); 
-        if (!response.ok) {
-          throw new Error("Failed to fetch podcasts");
-        }
-        const data = await response.json();
-        console.log("data", data);
-        setPodcasts(data.searchForTerm.podcastSeries);
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError('An unknown error occurred');
-        }
-      }
-    };
-
-    fetchPodcasts();
+    fetchPodcasts("podcast"); // Initial fetch with default term
   }, []);
+
+  const fetchPodcasts = async (term: string) => { // Accept term as parameter
+    try {
+      const response = await fetch(`/api/fetchPodcasts?term=${term}`); // Use term in query
+      if (!response.ok) {
+        throw new Error("Failed to fetch podcasts");
+      }
+      const data = await response.json();
+      console.log('term', term);
+      console.log("data", data);
+      setPodcasts(data.searchForTerm.podcastSeries);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unknown error occurred');
+      }
+    }
+  };
 
   return (
     <div>
@@ -77,8 +79,13 @@ export default function SelectPodcastsPage() {
         </div>
       ))}
       <div>
-        <input type="text" placeholder="Search podcasts" />
-        <button>Search</button>
+        <input 
+          type="text" 
+          placeholder="Search podcasts" 
+          value={searchTerm} 
+          onChange={(e) => setSearchTerm(e.target.value)} // Update searchTerm state
+        />
+        <button onClick={() => fetchPodcasts(searchTerm)}>Search</button>
       </div>
     </div>
     </div>

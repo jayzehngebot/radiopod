@@ -15,11 +15,11 @@ mongoose.connect(mongoUri).then(() => {
 
 // Define an interface for the podcast
 interface Podcast {
-  uuid: string;
-  name: string;
-  rssUrl: string;
-  itunesId: string;
-  // Add other properties if needed
+    uuid: string;
+    name: string;
+    rssUrl: string;
+    itunesId: string;
+
 }
 
 // function validateUUID(id: string): boolean {
@@ -37,6 +37,11 @@ export async function POST(request: NextRequest) {
   }
   const { podcast } = await request.json();
   console.log('podcast', podcast);
+  if (!podcast) {
+    console.error("Podcast is undefined in the request body");
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+
 
   try {
     if (!session || !session.user) {
@@ -49,20 +54,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check if the podcast already exists in the user's subscribedPodcasts
-    const podcastExists = user.subscribedPodcasts.some((p: Podcast) => p.uuid === podcast.uuid);
-    if (podcastExists) {
-      return NextResponse.json({ error: "Podcast already subscribed" }, { status: 409 });
+    // Check if the podcast exists in the user's subscribedPodcasts
+    const podcastIndex = user.subscribedPodcasts.findIndex((p: Podcast) => p.uuid === podcast.uuid);
+    console.log('podcastIndex', podcastIndex);
+    console.log('user.subscribedPodcasts', user.subscribedPodcasts);
+    
+    if (podcastIndex === -1) {
+      return NextResponse.json({ error: "Podcast not found in subscriptions" }, { status: 404 });
     }
 
-    // Add the new podcast to the user's subscribedPodcasts array
-    user.subscribedPodcasts.push(podcast);
+    // Remove the podcast from the user's subscribedPodcasts array
+    user.subscribedPodcasts.splice(podcastIndex, 1);
 
     await user.save();
 
-    return NextResponse.json({ message: "Podcast subscribed successfully" });
+    return NextResponse.json({ message: "Podcast unsubscribed successfully" });
   } catch (error) {
-    console.error("Error saving podcasts:", error);
+    console.error("Error updating podcasts:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

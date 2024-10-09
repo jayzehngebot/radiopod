@@ -14,7 +14,7 @@ type User = {
     email?: string | null;
     image?: string | null;
     subscribedPodcasts?: { 
-      id: string; 
+      uuid: string; 
       name: string; 
       rssUrl: string; 
       itunesId: string; 
@@ -43,6 +43,37 @@ export default function HomePage() {
     return <p>Unauthenticated</p>;
   }
 
+  const handleUnsubscribe = (podcast: { uuid: string }) => {
+    console.log('handleUnsubscribe', podcast);
+    if (!userData) return;
+
+    // Update the local state
+    const updatedPodcasts = userData.user?.subscribedPodcasts?.filter(podcast => podcast.uuid !== podcast.uuid);
+    setUserData({
+      ...userData,
+      user: {
+        ...userData.user,
+        subscribedPodcasts: updatedPodcasts,
+      },
+    });
+    console.log('remove podcast', podcast.uuid);
+    // Optionally, make an API call to update the server-side data
+    fetch('/api/unsubscribePodcast', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ podcast }),
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Unsubscribed successfully:', data);
+    })
+    .catch(error => {
+      console.error('Error unsubscribing:', error);
+    });
+  };
+
   return (
     <div>
       <h1>Welcome, {userData?.user?.name || userData?.user?.email}</h1>
@@ -61,9 +92,10 @@ export default function HomePage() {
         {userData?.user?.subscribedPodcasts && userData.user.subscribedPodcasts.length > 0 ? (
           
           userData.user.subscribedPodcasts.map((podcast) => (
-            <div key={podcast.id}>
+            <div key={podcast.uuid}>
               <span>{podcast.name}</span><br/>
               <span>{podcast.rssUrl}</span>
+              <button onClick={() => handleUnsubscribe({ uuid: podcast.uuid })}>Unsubscribe</button>
             </div>
 
           ))

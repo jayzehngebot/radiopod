@@ -55,6 +55,9 @@ async function taddyGraphqlRequest({ query, variables }: { query: string; variab
   
   try {
     const client = new GraphQLClient(endpointUrl, { headers });
+    console.log('endpointUrl', endpointUrl);
+    console.log('query', query);
+    console.log('variables', variables);
     const data = await client.request(query, variables);
     return data;
   } catch (e) {
@@ -64,19 +67,22 @@ async function taddyGraphqlRequest({ query, variables }: { query: string; variab
 }
 
 export async function GET(request: NextRequest) {
+  console.log('request', request);
   const { searchParams } = new URL(request.url);
   const term = searchParams.get("term") || "";
+  
   const page = parseInt(searchParams.get("page") || "1");
   const limitPerPage = parseInt(searchParams.get("limitPerPage") || "25");
 
   const variables: VariablesType = {
-    term: 'podcast',
-    page: 1,
-    limitPerPage: 10,
+    term: term,
+    page: page,
+    limitPerPage: limitPerPage,
   };
 
   const cacheKey = `podcasts:${term}:${page}:${limitPerPage}`;
-
+  console.log('cacheKey', cacheKey);
+  
   try {
     // Check if the data is in the cache
     const cachedData = await redisClient.get(cacheKey);
@@ -89,10 +95,10 @@ export async function GET(request: NextRequest) {
     const data = await taddyGraphqlRequest({ query: SEARCH_FOR_TERM_QUERY, variables });
 
     // Cache the data for 2 hours
-    await redisClient.set(cacheKey, JSON.stringify(data), {
-      EX: 7200, // 2 hours in seconds
-    });
-
+    // await redisClient.set(cacheKey, JSON.stringify(data), {
+    //   EX: 7200, // 2 hours in seconds
+    // });
+    console.log('data', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error("Fetch podcasts error:", error);
